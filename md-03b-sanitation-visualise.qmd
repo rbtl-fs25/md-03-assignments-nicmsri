@@ -1,7 +1,7 @@
 ---
 title: "Data transformation with dplyr"
 subtitle: "And make a plot"
-author: ""
+author: "Nicolo Massari"
 format:
   html:
     embed-resources: true
@@ -47,7 +47,9 @@ sanitation <- read_csv("data/jmp_wld_sanitation_long.csv")
 3.  How many variables are in the data set?
 
 ```{r}
-
+glimpse(sanitation)
+levels <- sanitation %>% 
+  sapply(unique)
 ```
 
 ## Task 2
@@ -56,6 +58,8 @@ sanitation <- read_csv("data/jmp_wld_sanitation_long.csv")
 
 ```{r}
 
+sanitation %>% 
+  count(varname_short, varname_long)
 ```
 
 ## Task 3
@@ -70,6 +74,10 @@ sanitation <- read_csv("data/jmp_wld_sanitation_long.csv")
 
 ```{r}
 
+sanitation_afg<-sanitation %>% 
+  filter(iso3=="AFG", 
+         year%in%c(2000,2020), 
+         varname_long!="safely managed sanitation services")
 ```
 
 ## Task 4
@@ -77,7 +85,8 @@ sanitation <- read_csv("data/jmp_wld_sanitation_long.csv")
 1.  Use the `count()` function with the data you created in Task 3 to verify that year 2000 and 2020 remained in the year variable.
 
 ```{r}
-
+sanitation_afg %>% 
+  count(year)
 ```
 
 ## Task 5
@@ -100,21 +109,29 @@ geom_text(aes(label = round(percent, 1)),
 ```
 
 ```{r}
-
+ggplot(sanitation_afg, aes(residence, percent, fill=varname_long))+
+  geom_col()+
+  facet_wrap(~year)+
+  scale_fill_colorblind()+
+  theme_light()+
+  geom_text(aes(label = round(percent, 1)), 
+          position = position_stack(vjust = 0.5),
+          size = 3,
+          color = "white") 
 ```
 
 ## Task 6
 
 If you haven't worked with JMP indicators before, the following questions will be challenging to answer.
 
-1.  Look at the plot that you created. What do you notice about the order of the bars / order of the legend?
-2.  What would you want to change?
-3.  Why did we remove "safely managed sanitation services" from the data set in Task 3?
+1.  Look at the plot that you created. What do you notice about the order of the bars / order of the legend? rural always has less basic sanitation
+2.  What would you want to change? reorder of national and rural
+3.  Why did we remove "safely managed sanitation services" from the data set in Task 3? uninteresting, no impact needed where there is safely managed sanitation services
 
 ## Task 7
 
 1.  Run the code in the code chunk below.
-2.  What do you observe when you look at the code and plot?
+2.  What do you observe when you look at the code and plot? that the safely managed sanitation services variables is uncorrelated to the others
 
 ```{r}
 
@@ -124,7 +141,7 @@ sanitation_2020 <- sanitation |>
 ggplot(data = sanitation_2020,
        mapping = aes(x = percent, fill = varname_short)) +
   geom_histogram() +
-  facet_grid(varname_short ~ residence, scales = "free_y") +
+  facet_grid(varname_long ~ residence, scales = "free_y") +
   scale_fill_colorblind() +
   theme(legend.position = "none") 
 
